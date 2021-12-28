@@ -2,7 +2,7 @@
 
 Python implementation for CVE-2021-42278 (Active Directory Privilege Escalation).
 
-## Installtion
+## Installation
 
 ```bash
 $ pip3 install impacket
