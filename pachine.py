@@ -96,7 +96,7 @@ class MachineAccount:
         self.baseDN = options.baseDN
         self.computerGroup = options.computer_group
         self.action = "add"
-        self.computerName = self.options.dc_host.split(".")[0]
+        self.computerName = options.spn.split('/')[1].split(".")[0]
         self.newComputerName = self.options.computer_name
 
         if self.newComputerName is None:
