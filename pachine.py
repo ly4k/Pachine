@@ -96,8 +96,9 @@ class MachineAccount:
         self.baseDN = options.baseDN
         self.computerGroup = options.computer_group
         self.action = "add"
-        self.computerName = self.options.dc_host.split(".")[0]
+        self.computerName = options.spn.split('/')[1].split(".")[0]
         self.newComputerName = self.options.computer_name
+        self.useComputerName = options.use_computer
 
         if self.newComputerName is None:
             self.newComputerName = self.generateComputerName()
@@ -1136,6 +1137,12 @@ if __name__ == "__main__":
         help="Domain NetBIOS name. Required if the DC has multiple domains.",
     )
     parser.add_argument(
+        "-use-computer",
+        action="store",
+        metavar="USE-COMPUTER-NAME$",
+        help="Name of the computer account you want to use. "
+    )
+    parser.add_argument(
         "-computer-name",
         action="store",
         metavar="NEW-COMPUTER-NAME$",
@@ -1281,6 +1288,16 @@ if __name__ == "__main__":
             sys.exit(0)
 
         ma = MachineAccount(username, password, domain, options)
+
+        if options.use_computer:
+            oldComputerName = ma.computerName
+            oldNewComputerName = ma.newComputerName
+            ma.computerName = options.use_computer
+            ma.newComputerName = oldComputerName
+            ma.rename()
+            ma.computerName = oldComputerName
+            ma.newComputerName = oldNewComputerName
+
         ma.add()
 
         userName = Principal(

